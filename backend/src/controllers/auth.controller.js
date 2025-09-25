@@ -13,6 +13,7 @@ export const register = async (req, res) => {
         });
         if (exitingUser) {
             return res.status(400).json({
+                success: false,
                 error: "User already exists"
             });
         }
@@ -39,6 +40,7 @@ export const register = async (req, res) => {
        });
       
        res.status(201).json({
+        success: true,
         message: "User created successfully",
         user: {
             id: newUser.id,
@@ -50,7 +52,10 @@ export const register = async (req, res) => {
        });
     } catch (err) {
         if(process.env.NODE_ENV === "development") console.log("error creating user: ", err);
-        res.status(500).json({ message: "error creating user", err: err.message });
+        res.status(500).json({ 
+            success: false,
+            message: "error creating user", 
+            err: err.message });
     }
 }
 
@@ -65,6 +70,7 @@ export const login = async (req, res) => {
 
         if (!user) {
             return res.status(401).json({
+                success: false,
                 error: "User does not exist"
             });
         }
@@ -73,6 +79,7 @@ export const login = async (req, res) => {
 
         if (!isPasswordValid) {
             return res.status(400).json({
+                success: false,
                 error: "Invalid credentials"
             });
         }
@@ -89,6 +96,7 @@ export const login = async (req, res) => {
        });
       
        res.status(200).json({
+            success: true,
             message: "User logged in successfully",
             user: {
                 id: user.id,
@@ -100,12 +108,31 @@ export const login = async (req, res) => {
         })
     } catch (err) {
         if(process.env.NODE_ENV === "development") console.log("error logging in user: ", err);
-        res.status(500).json({ message: "error logging in user", err: err.message });
+        res.status(500).json({ 
+            success: false,
+            message: "error logging in user", 
+            err: err.message });
     }
 }
 
 export const logout = async (req, res) => {
-    
+    try {
+       res.clearCookie("jwt", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== "development",
+        sameSite: "strict",
+       });
+       
+       res.status(200).json({ 
+        success: true,
+        message: "user logged out successfully" });
+    } catch (err) {
+       if(process.env.NODE_ENV === "development") console.log("error logging out user: ", err);
+       res.status(500).json({ 
+        success: false,
+        message: "error logging out user",
+        err: err.message });
+    }
 }
 
 export const me = async (req, res) => {
