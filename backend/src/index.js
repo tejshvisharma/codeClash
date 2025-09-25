@@ -12,7 +12,7 @@ app.use(express.json());
 
 // Test route
 app.get("/", (req, res) => {
-  res.send("CodeClash Backend is running!");
+  res.send("CodeClash Backend is running🔥!");
 });
 
 const PORT = process.env.PORT || 8000;
