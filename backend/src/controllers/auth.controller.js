@@ -136,5 +136,25 @@ export const logout = async (req, res) => {
 }
 
 export const me = async (req, res) => {
-    
+    try {
+        const user = req.user;
+        res.status(200).json({
+          success: true,
+          message: "User fetched successfully",
+          user: {
+            id: user.id,
+            image: user.image,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          },
+        });
+    } catch (err) {
+        if(process.env.NODE_ENV === "development") console.log("error fetching user: ", err);
+        res.status(500).json({ 
+            success: false,
+            message: "error fetching user", 
+            err: err.message 
+        });
+    }
 }
