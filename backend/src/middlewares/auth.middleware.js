@@ -56,3 +56,30 @@ export const isLoggedIn = async (req, res, next) => {
       .json({ success: false, message: "Error in authentication middleware" });
   }
 };
+
+export const isAdmin = (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (userId) {
+      const user = db.user.findUnique({ where: { id: userId } });
+      if (user && user.role === "ADMIN") {
+        next();
+      } else {
+        return res
+          .status(403)
+          .json({ success: false, message: "Unauthorized - Admin access required" });
+      }
+    } else {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized - User not authenticated" });
+    }
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error in Authorization middleware:", err);
+    }
+    return res
+      .status(500)
+      .json({ success: false, message: "Error in Authorization middleware" });
+  }
+};
