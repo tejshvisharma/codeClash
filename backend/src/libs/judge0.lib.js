@@ -10,7 +10,7 @@ export const getJudge0LanguageId = (language) => {
       "CPP": 54,
       "JAVASCRIPT": 63,
     };
-    return langMap[language.toUpperCase()];
+    return langMap[language.toUpperCase()] || null;
 };
 
 export const submitBatch = async (submissions) => {

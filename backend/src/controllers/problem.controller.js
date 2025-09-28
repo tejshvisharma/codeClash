@@ -2,7 +2,6 @@ import { db } from "../libs/db.js";
 import { getJudge0LanguageId, submitBatch, pollBatchResult } from "../libs/judge0.lib.js";
 export const createProblem = async (req, res) => {
     const {
-      id,
       title,
       description,
       difficulty,
@@ -27,13 +26,16 @@ export const createProblem = async (req, res) => {
         });
     }
     try {
-        for (const [language, solutionCode] of object.entries(referenceSolutions)) {
+        for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
             
             const languageId = getJudge0LanguageId(language);
             if(!languageId) {
                 return res
-                        .status(400)
-                        .json({ success: false, error: `language ${language} is not supported` });
+                  .status(400)
+                  .json({
+                    success: false,
+                    error: `language ${language} is not supported`,
+                  });
             }
 
             const submissions = testCases.map(({ input, output }) => ({
@@ -61,9 +63,10 @@ export const createProblem = async (req, res) => {
                 }
             }
 
+        }
+
             const newProblem = await db.problem.create({
                 data: {
-                    id,
                     title,
                     description,
                     difficulty,
@@ -75,12 +78,12 @@ export const createProblem = async (req, res) => {
                     testCases,
                     codeSnippets,
                     referenceSolutions,
-                    userId,
+                    userId: userId,
                 },
             });
 
             res.status(201).json({ success: true, message: "Problem created successfully", problem: newProblem });
-        }
+        
     } 
     catch (err) {
         if(process.env.NODE_ENV === "development") console.log("Error creating problem: ", err);
