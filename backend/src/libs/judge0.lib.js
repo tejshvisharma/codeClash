@@ -14,9 +14,12 @@ export const getJudge0LanguageId = (language) => {
 };
 
 export const submitBatch = async (submissions) => {
-    const { data } = await axios.post(`${process.env.JUDGE0_API_URL}/submissions/batch?base64_encoded=false`, {
-        submissions
-    });
+    const { data } = await axios.post(
+      `${process.env.JUDGE0_API_BASE_URL}/submissions/batch?base64_encoded=false`,
+      {
+        submissions,
+      }
+    );
     if(process.env.NODE_ENV === "development") console.log("Submissions response: ",data);
     return data;    // Returns an array of submission IDs : [{token1}, {token2}, ...]
 }
@@ -25,12 +28,15 @@ export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const pollBatchResult = async(tokens) => {
     while (true) {
-        const { data } = await axios.get(`${process.env.JUDGE0_API_URL}/submissions/batch`, {
+        const { data } = await axios.get(
+          `${process.env.JUDGE0_API_BASE_URL}/submissions/batch`,
+          {
             params: {
-                tokens: tokens.join(","),
-                base64_encoded: false,
-            }
-        });
+              tokens: tokens.join(","),
+              base64_encoded: false,
+            },
+          }
+        );
 
         const results = data.submissions;
         

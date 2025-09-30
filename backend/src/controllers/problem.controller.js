@@ -82,7 +82,13 @@ export const createProblem = async (req, res) => {
                 },
             });
 
-            res.status(201).json({ success: true, message: "Problem created successfully", problem: newProblem });
+          return res
+                    .status(201)
+                    .json({ 
+                        success: true, 
+                        message: "Problem created successfully", 
+                        problem: newProblem 
+                    });
         
     } 
     catch (err) {
