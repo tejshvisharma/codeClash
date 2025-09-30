@@ -1,22 +1,9 @@
 import { db } from "../libs/db.js";
 import { getJudge0LanguageId, submitBatch, pollBatchResult } from "../libs/judge0.lib.js";
 export const createProblem = async (req, res) => {
-    const {
-      title,
-      description,
-      difficulty,
-      tags,
-      examples,
-      constraints,
-      hints,
-      editorial,
-      testCases,
-      codeSnippets,
-      referenceSolutions,
-    } = req.body;
-
+    
     const  userId  = req.user?.id;
-
+    
     if (req.user?.role !== "ADMIN") {
       return res
         .status(403)
@@ -26,6 +13,21 @@ export const createProblem = async (req, res) => {
         });
     }
     try {
+        const {
+          title,
+          description,
+          difficulty,
+          tags,
+          examples,
+          constraints,
+          hints,
+          editorial,
+          testCases,
+          codeSnippets,
+          referenceSolutions,
+        } = req.body;
+
+
         for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
             
             const languageId = getJudge0LanguageId(language);
