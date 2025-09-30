@@ -62,8 +62,6 @@ export const isAdmin = async (req, res, next) => {
     const userId = req.user?.id;
     if (userId) {
       const user = await db.user.findUnique({ where: { id: userId } });
-      console.log("REQ USER: ", req.user);
-      console.log("DB USER: ", user);
       if (user?.role !== "ADMIN") {
         return res.status(403).json({
           success: false,
