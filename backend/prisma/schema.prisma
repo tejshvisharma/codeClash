@@ -14,46 +14,113 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole{
+enum UserRole {
   ADMIN
   USER
 }
 
-enum Difficulty{
+enum Difficulty {
   EASY
   MEDIUM
   HARD
 }
-model User{
-  id String @id @default(uuid())
-  name String?
-  email String @unique
-  image String?
-  role UserRole @default(USER)
-  password String
+
+model User {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  image     String?
+  role      UserRole @default(USER)
+  password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  problems Problem[]
+  problems       Problem[]
+  submissions    submission[]
+  solvedProblems problemSolved[]
 }
 
 model Problem {
-  id          String       @id @default(uuid())
-  title       String  
-  description String
-  difficulty  Difficulty
-  tags        String[]
-  userId String
-  examples Json
-  constraints String
-  hints String?
-  editorial String?
-  testCases Json
-  codeSnippets Json
+  id                 String     @id @default(uuid())
+  title              String
+  description        String
+  difficulty         Difficulty
+  tags               String[]
+  userId             String
+  examples           Json
+  constraints        String
+  hints              String?
+  editorial          String?
+  testCases          Json
+  codeSnippets       Json
   referenceSolutions Json
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 
- //Relationships 
-  user User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  //Relationships 
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submissions submission[]
+  solvedBy    problemSolved[]
 }
+
+model submission {
+  id            String   @id @default(uuid())
+  userId        String
+  problemId     String
+  sourceCode    String
+  language      String
+  stdin         Json?
+  stdout        Json?
+  stderr        Json?
+  compileOutput String?
+  status        String
+  memory        String?
+  time          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  //Relationships
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  testCaseResults testCaseResult[]
+}
+
+model testCaseResult {
+  id            String   @id @default(uuid())
+  submissionId  String
+  testCase      Int
+  testCaseInput String
+  passed        Boolean
+  stdout        String?
+  expected      String
+  stderr        String?
+  compileOutput String?
+  status        String
+  memory        String?
+  time          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  //Relationships
+  submission submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+}
+
+model problemSolved {
+  id        String   @id @default(uuid())
+  userId    String
+  problemId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
+}
+
+// Define your models here and run `npx prisma migrate dev` to create migrations for your database.
