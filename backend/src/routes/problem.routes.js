@@ -28,7 +28,7 @@ problemsRoutes
 
 problemsRoutes
     .route('/update-problem/:id')
-    .put(isLoggedIn, isAdmin, updateProblemById);
+    .patch(isLoggedIn, isAdmin, updateProblemById);
 
 problemsRoutes
     .route('/delete-problem/:id')
