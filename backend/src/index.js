@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 // import routes
 import authRoutes from "./routes/auth.routes.js";
 import problemsRoutes from "./routes/problem.routes.js";
+import executionRoutes from "./routes/execution.routes.js";
+import requestId from "./middlewares/requestId.middleware.js";
 
 dotenv.config();
 
@@ -16,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(requestId);
 
 // Test route
 app.get("/", (req, res) => {
@@ -25,7 +28,7 @@ app.get("/", (req, res) => {
 // Handle Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/problems", problemsRoutes);
-
+app.use("/api/v1/execute-code", executionRoutes);
 
 
 
