@@ -1,3 +1,4 @@
+import { use } from "react";
 import { db } from "../libs/db.js";
 import {
   getJudge0LanguageId,
@@ -377,4 +378,37 @@ export const getProblemsByUserId = async (req, res) => {
   }
 };
 
-export const getProblemsSolvedByUser = async (req, res) => {};
+export const getProblemsSolvedByUser = async (req, res) => {
+  const { userId } = req.user;
+  try {
+    const problems = await db.problem.findMany({
+      where: {
+        solvedBy: {
+          some: {
+            userId: userId,
+          }
+        }
+      },
+      include: {
+        solvedBy: {
+          where: {
+            userId: true,
+          }
+        }
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Problems fetched successfully",
+      problems,
+    });
+
+  } catch (err) {
+    logger.error({ err: err.message, stack: err.stack }, "Error fetching problemsSolvedByUser");
+    return res.status(500).json({
+      success: false,
+      error: "Error fetching Problems Solved By User",
+    });
+  }
+};

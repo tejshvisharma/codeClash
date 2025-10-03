@@ -1,3 +1,4 @@
+import { db } from "../libs/db.js";
 import logger from "../utils/logger.js";
 
 export const getAllSubmissions = async (req, res) => {
