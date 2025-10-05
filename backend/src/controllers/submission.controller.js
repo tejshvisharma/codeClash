@@ -2,7 +2,7 @@ import { db } from "../libs/db.js";
 import logger from "../utils/logger.js";
 
 export const getAllSubmissions = async (req, res) => {
-  const { userId } = req.user;
+  const userId = req.user?.id;
   const requestId = req.requestId; 
 
   try {
@@ -29,11 +29,24 @@ export const getAllSubmissions = async (req, res) => {
   }
 };
 export const getSubmissionsByProblemId = async (req, res) => {
-  const { userId } = req.user;
+  const  userId  = req.user?.id;
   const { problemId } = req.params;
   const requestId = req.requestId; 
 
   try {
+
+    const problem = await db.problem.findUnique({
+      where: {
+        id: problemId,
+      },
+    });
+
+    if (!problem) {
+      return res.status(404).json({
+        success: false,
+        error: "Problem not found",
+      });
+    }
     const submissions = await db.submission.findMany({
       where: {
         userId: userId,

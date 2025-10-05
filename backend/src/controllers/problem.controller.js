@@ -379,7 +379,7 @@ export const getProblemsByUserId = async (req, res) => {
 };
 
 export const getProblemsSolvedByUser = async (req, res) => {
-  const { userId } = req.user;
+  const  userId  = req.user?.id;
   const requestId = req.requestId;
   try {
     const problems = await db.problem.findMany({
