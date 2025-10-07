@@ -2,16 +2,18 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Mail, Lock, Code, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Code, User, Loader2 } from "lucide-react";
 import { z } from "zod";
 import AuthImagePattern from "../components/AuthImagePattern";
-
+import { useAuthStore } from "../store/useAuthStore";
 // Updated Zod schema with password confirmation validation
 const loginSchema = z
   .object({
     email: z.email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters long"),
   });
+
+
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,16 +26,17 @@ const LoginPage = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login, isLoggingIn } = useAuthStore();
+
 
   const onSubmit = async (data) => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
+    if (isLoggingIn) return;
     try {
-      // await api.signup(data);
+     
       console.log(data);
-    } finally {
-      setIsSubmitting(false);
+      await login(data);
+    } catch (err) {
+      console.log("Error in signing up: ", err.message);
     }
   };
 
@@ -54,7 +57,6 @@ const LoginPage = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
             {/* Email */}
             <div className="form-control">
               <label className="label">
@@ -124,9 +126,16 @@ const LoginPage = () => {
             <button
               type="submit"
               className="btn btn-primary w-full"
-              disabled={isSubmitting}
+              disabled={isLoggingIn}
             >
-              {isSubmitting ? "Signing in..." : "Login "}
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="ml-2">signing in...</span>
+                </>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
 
