@@ -45,10 +45,10 @@ export const useAuthStore = create((set) => ({
 
       set({ authUser: res.data.user });
 
-      toast.success(res.data.message);
+      toast.success("Login Successfully");
     } catch (error) {
       console.log("Error logging in", error);
-      toast.error("Error logging in");
+      toast.error("Error Logging In");
     } finally {
       set({ isLoggingIn: false });
     }
@@ -59,7 +59,7 @@ export const useAuthStore = create((set) => ({
       await axiosInstance.post("/auth/logout");
       set({ authUser: null });
 
-      toast.success("Logout successful");
+      toast.success("Logout successfully");
     } catch (error) {
       console.log("Error logging out", error);
       toast.error("Error logging out");
