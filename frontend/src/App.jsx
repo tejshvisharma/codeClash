@@ -18,7 +18,7 @@ function App() {
     checkAuth();
   }, [checkAuth]);
 
-  if(isCheckingAuth && !authUser){
+  if(isCheckingAuth){
      return (
      <div className="flex items-center justify-center h-screen">
       <Loader className="size-10 animate-spin" />
@@ -48,7 +48,9 @@ function App() {
         />
 
         <Route  element={<AdminRoute />}> 
-        <Route path="/add-problem" element={authUser ? <AddProblem /> : <Navigate to="/" />} />
+        <Route 
+          path="/add-problem" 
+          element={authUser ? <AddProblem /> : <Navigate to="/" />} />
         </Route>
       </Routes>
     </div>
