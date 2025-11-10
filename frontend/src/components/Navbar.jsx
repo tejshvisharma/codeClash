@@ -77,7 +77,7 @@ const Navbar = () => {
 
             <ul
               tabIndex={0}
-              className="menu menu-sm dropdown-content mt-4  z-[1] p-4 shadow-2xl bg-base-100/90 backdrop-blur-lg rounded-2xl w-98 border border-base-content/15 animate-fade-in mr-4"
+              className="menu menu-sm dropdown-content mt-4  z-[1] p-4 shadow-2xl bg-base-100/90 backdrop-blur-lg rounded-2xl w-auto border border-base-content/15 animate-fade-in mr-4"
             >
               {/* User Info Header */}
               <li className="mb-3">

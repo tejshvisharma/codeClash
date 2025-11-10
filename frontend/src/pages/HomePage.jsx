@@ -1,6 +1,14 @@
 import React from 'react'
-
+import  useProblemStore  from "../store/useProblemStore";
+import ProblemTable from '../components/ProblemTable';
 const HomePage = () => {
+  const { problems, getAllProblems, isProblemsLoading } = useProblemStore();
+
+  React.useEffect(() => {
+    if (problems.length === 0) {
+      getAllProblems();
+    }
+  }, [getAllProblems, problems.length]);
   return (
     <div className="min-h-screen flex flex-col items-center mt-14 px-4">
       <div className="absolute top-16 left-0 w-1/3 h-1/3 bg-primary opacity-30 blur-3xl rounded-md bottom-9"></div>
@@ -39,6 +47,10 @@ const HomePage = () => {
             />
           </svg>
         </a>
+      </div>
+      {/* Problem Table */}
+      <div className="w-full max-w-7xl z-10">
+        <ProblemTable problems={problems} isLoading={isProblemsLoading} />
       </div>
     </div>
   );

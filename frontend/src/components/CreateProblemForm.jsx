@@ -496,7 +496,7 @@ int main() {
 };
 
 // Reusable Collapsible Section Component
-const CollapsibleSection = ({ id, title, color, children, isOpen, onToggle }) => {
+const CollapsibleSection = ({ id, title,icon: Icon, color, children, isOpen, onToggle }) => {
   return (
     <div id={`section-${id}`} className="card bg-black/20 backdrop-blur-lg border border-white/10 rounded-2xl shadow-lg overflow-hidden">
       <button
