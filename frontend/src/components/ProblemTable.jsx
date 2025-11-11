@@ -1,4 +1,3 @@
-// src/components/ProblemTable.jsx
 import React, { useMemo } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { CheckCircle2, Clock, Plus, Pencil, Trash2, Eye } from "lucide-react";
@@ -37,7 +36,6 @@ const ProblemTable = ({ problems, isLoading = false }) => {
   const [selectedDifficulty, setSelectedDifficulty] = React.useState("ALL");
   const [selectedTag, setSelectedTag] = React.useState("ALL");
   const [showUnsolvedOnly, setShowUnsolvedOnly] = React.useState(false);
-
   // Extract unique tags
   const allTags = useMemo(() => {
     const tags = new Set();
@@ -73,6 +71,32 @@ const ProblemTable = ({ problems, isLoading = false }) => {
     showUnsolvedOnly,
     authUser?.solvedProblems,
   ]);
+
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage] = React.useState(10);
+
+  const { currentProblems, totalPages } = useMemo(() => {
+    const total = filteredProblems.length;
+    const pages = Math.ceil(total / itemsPerPage);
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const current = filteredProblems.slice(start, end);
+
+    return { currentProblems: current, totalPages: pages };
+  }, [filteredProblems, currentPage, itemsPerPage]);
+
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(
+    currentPage * itemsPerPage,
+    filteredProblems.length
+  );
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
 
   const isSolved = (problemId) => {
     return authUser?.solvedProblems?.includes(problemId);
@@ -116,9 +140,12 @@ const ProblemTable = ({ problems, isLoading = false }) => {
         <div className="text-sm text-gray-400">
           Showing{" "}
           <span className="text-white font-medium">
+            {startIndex}-{endIndex}
+          </span>{" "}
+          of{" "}
+          <span className="text-white font-medium">
             {filteredProblems.length}
           </span>{" "}
-          of <span className="text-white font-medium">{problems.length}</span>{" "}
           problems
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -134,7 +161,7 @@ const ProblemTable = ({ problems, isLoading = false }) => {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/20 backdrop-blur-lg">
-        <table className="table w-full">
+        <table className="table w-full table-auto">
           <thead>
             <tr className="text-left text-gray-400 text-sm">
               <th className="px-4 py-3">Status</th>
@@ -176,7 +203,7 @@ const ProblemTable = ({ problems, isLoading = false }) => {
                 </td>
               </tr>
             ) : (
-              filteredProblems.map((problem) => (
+              currentProblems.map((problem) => (
                 <tr
                   key={problem.id}
                   className="border-t border-white/5 hover:bg-white/5 transition-colors group"
@@ -274,6 +301,120 @@ const ProblemTable = ({ problems, isLoading = false }) => {
             )}
           </tbody>
         </table>
+      </div>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 bg-base-100/20 rounded-xl border border-white/10">
+        {/* Left: Previous Button */}
+        <button
+          className={`btn btn-sm rounded-xl ${
+            currentPage === 1
+              ? "btn-disabled opacity-50 cursor-not-allowed"
+              : "btn-ghost hover:bg-primary/20 hover:text-primary"
+          }`}
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <svg
+            className="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          Previous
+        </button>
+
+        {/* Center: Page Numbers */}
+        <div className="flex items-center gap-1">
+          {/* First Page */}
+          {currentPage > 2 && (
+            <>
+              <button
+                className="btn btn-sm btn-ghost rounded-lg"
+                onClick={() => handlePageChange(1)}
+              >
+                1
+              </button>
+              {currentPage > 3 && (
+                <span className="px-2 text-gray-400">...</span>
+              )}
+            </>
+          )}
+
+          {/* Previous Page Button (if needed) */}
+          {currentPage > 1 && (
+            <button
+              className="btn btn-sm btn-ghost rounded-lg"
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              {currentPage - 1}
+            </button>
+          )}
+
+          {/* Current Page */}
+          <button
+            className="btn btn-sm btn-primary rounded-lg min-w-[36px] text-white shadow-lg shadow-primary/20"
+            onClick={() => handlePageChange(currentPage)}
+          >
+            {currentPage}
+          </button>
+
+          {/* Next Page Button (if needed) */}
+          {currentPage < totalPages && (
+            <button
+              className="btn btn-sm btn-ghost rounded-lg"
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              {currentPage + 1}
+            </button>
+          )}
+
+          {/* Next Dots and Last Page */}
+          {currentPage < totalPages - 1 && (
+            <>
+              {currentPage < totalPages - 2 && (
+                <span className="px-2 text-gray-400">...</span>
+              )}
+              <button
+                className="btn btn-sm btn-ghost rounded-lg"
+                onClick={() => handlePageChange(totalPages)}
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Right: Next Button */}
+        <button
+          className={`btn btn-sm rounded-xl ${
+            currentPage === totalPages
+              ? "btn-disabled opacity-50 cursor-not-allowed"
+              : "btn-ghost hover:bg-primary/20 hover:text-primary"
+          }`}
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+          <svg
+            className="w-4 h-4 ml-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   );

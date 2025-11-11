@@ -97,7 +97,7 @@ const useProblemStore = create((set) => ({
         problemData
       );
       if (res.data.success) {
-        toast.success(res.data.message || "Problem created!");
+        toast.success(res.data.message || "Problem created successfully!");
         return res.data.problem;
       } else {
         toast.error(res.data.error || "Failed to create problem");
