@@ -161,6 +161,23 @@ const useProblemStore = create((set) => ({
     }
   },
 
+  getSubmissionsForProblem: async (problemId) => {
+    set({ isSubmissionsLoading: true });
+    try {
+      const res = await axiosInstance.get(`/submissions/problem/${problemId}`);
+      if (res.data.success) {
+        set({ submissionsForProblem: res.data.submissions });
+      } else {
+        toast.error(res.data.error || "Failed to fetch submissions");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Something went wrong");
+      console.error("getSubmissionsForProblem error:", error);
+    } finally {
+      set({ isSubmissionsLoading: false });
+    }
+  },
+
   // Reset single problem state
   resetProblem: () => set({ problem: null }),
 }));

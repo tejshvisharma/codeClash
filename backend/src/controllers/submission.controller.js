@@ -97,3 +97,55 @@ export const getSubmissionsCountForProblem = async (req, res) => {
         });
     }
 };
+export const getSubmissionsForProblem = async (req, res) => {
+  const userId = req.user?.id;
+  const { problemId } = req.params;
+  const requestId = req.requestId;
+
+  try {
+    // Verify problem exists
+    const problem = await db.problem.findUnique({
+      where: { id: problemId },
+    });
+
+    if (!problem) {
+      return res.status(404).json({
+        success: false,
+        error: "Problem not found",
+      });
+    }
+
+    // Get user's submissions for this problem
+    const submissions = await db.submission.findMany({
+      where: {
+        userId,
+        problemId,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20, // Limit to last 20 submissions
+      include: {
+        testCaseResults: {
+          select: {
+            testCase: true,
+            passed: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Submissions fetched successfully",
+      submissions,
+    });
+  } catch (err) {
+    logger.error(
+      { requestId, userId, problemId, err: err.message, stack: err.stack },
+      "Error fetching submissions for problem"
+    );
+    return res.status(500).json({
+      success: false,
+      error: "Error fetching submissions",
+    });
+  }
+};
