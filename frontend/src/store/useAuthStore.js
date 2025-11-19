@@ -3,9 +3,12 @@ import { axiosInstance } from '../lib/axios.js'
 import toast from 'react-hot-toast'
 export const useAuthStore = create((set) => ({
   authUser: null,
+  problemsSolved: [],
+  problemsSolvedCount: 0,
   isSigningUp: false,
   isLoggingIn: false,
   isCheckingAuth: false,
+  error: null,
 
   checkAuth: async function () {
     set({ isCheckingAuth: true });
@@ -77,6 +80,28 @@ export const useAuthStore = create((set) => ({
     } catch (error) {
       console.log("Error logging out", error);
       toast.error("Error logging out");
+    }
+  },
+  fetchProblemSolvedCount: async () => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const res = await axiosInstance.get("/problems/get-solved-count");
+
+      set({
+        problemsSolvedCount: res.data.solvedProblemsCount || 0,
+        isLoading: false,
+      });
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch solved problem count";
+
+      console.error("Error fetching problem solved count:", errorMessage);
+
+      set({ error: errorMessage, isLoading: false });
+
     }
   },
 }));

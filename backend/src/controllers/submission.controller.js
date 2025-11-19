@@ -149,3 +149,57 @@ export const getSubmissionsForProblem = async (req, res) => {
     });
   }
 };
+
+export const getSuccessRateForProblem = async (req, res) => {
+  const { problemId } = req.params;
+  const requestId = req.requestId;
+
+  try {
+    const problem = await db.problem.findUnique({
+      where: { id: problemId },
+    });
+
+    if (!problem) {
+      return res.status(404).json({
+        success: false,
+        error: "Problem not found",
+      });
+    }
+
+    const submissions = await db.submission.findMany({
+      where: { problemId },
+    });
+
+    const totalSubmissions = submissions.length;
+
+    if (totalSubmissions === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No submissions yet",
+        successRate: 0,
+      });
+    }
+
+    const successfulSubmissions = submissions.filter(
+      (s) => s.status === "ACCEPTED"
+    ).length;
+
+    const successRate = Math.round((successfulSubmissions / totalSubmissions) * 100);
+
+    return res.status(200).json({
+      success: true,
+      message: "Success rate fetched successfully",
+      successRate,
+    });
+  } catch (error) {
+    logger.error(
+      { requestId, problemId, err: error.message, stack: error.stack },
+      "Error fetching success rate"
+    );
+    return res.status(500).json({
+      success: false,
+      error: "Error fetching success rate",
+    });
+  }
+};
+

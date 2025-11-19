@@ -3,6 +3,8 @@ import { User, Code, LogOut, Zap } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { Link } from "react-router-dom";
 import LogoutButton from "./LogoutButton.jsx";
+import { use } from "react";
+import { useEffect } from "react";
 
 // Custom CodeClash Logo Component
 const CodeClashLogo = () => {
@@ -34,8 +36,13 @@ const CodeClashLogo = () => {
 
 const Navbar = () => {
   const { authUser } = useAuthStore();
+  const { problemsSolvedCount, fetchProblemSolvedCount } = useAuthStore();
   const fname = authUser?.name.split(" ")[0];
   const lname = authUser?.name.split(" ")[1];
+
+  useEffect(() => {
+    fetchProblemSolvedCount();
+  }, [fetchProblemSolvedCount]);
   return (
     <nav className="sticky top-0 z-50 w-full py-3 px-4">
       <div className="flex w-full justify-between mx-auto max-w-5xl bg-black/20 shadow-lg shadow-neutral-800/20 backdrop-blur-xl border border-white/10 rounded-2xl overflow-visible px-4">
@@ -161,7 +168,7 @@ const Navbar = () => {
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
                       </svg>
                       <span className="text-emerald-300 font-medium text-sm group-hover:text-emerald-200 transition-colors">
-                        {authUser?.solved || 0}
+                        { problemsSolvedCount || 0}
                       </span>
                       <span className="text-emerald-400/60 text-xs">
                         Solved

@@ -27,7 +27,7 @@ import { getJudge0LanguageId, languageDisplayNames } from "../lib/languages.js";
 import  useExecutionStore  from "../store/useExecutionStore";
 import  useSubmissionStore  from "../store/useSubmissionStore";
 import SubmissionResults from "../components/submissionResults.jsx";
-import { calculateSuccessRate } from "../lib/submissions.js";
+
 
 const ProblemPage = () => {
   const { id } = useParams();
@@ -46,6 +46,8 @@ const ProblemPage = () => {
     getSubmissionsForProblem, 
     getSubmissionCountForProblem,
     submissionCount,
+    successRate,
+    getSuccessRateForProblem
   } = useSubmissionStore();
 
   const [code, setCode] = useState("");
@@ -58,8 +60,9 @@ const ProblemPage = () => {
     if (id) {
       getProblemById(id);
       getSubmissionCountForProblem(id);
+      getSuccessRateForProblem(id);
     }
-  }, [id, getProblemById, getSubmissionCountForProblem]);
+  }, [id, getProblemById, getSubmissionCountForProblem, getSuccessRateForProblem]);
 
   useEffect(() => {
     if (activeTab === "submissions" && id) {
@@ -361,7 +364,7 @@ const ProblemPage = () => {
               </div>
               <div className="flex items-center gap-1">
                 <ThumbsUp className="w-4 h-4" />
-                <span>95%</span>
+                <span>{successRate || 0}%</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />

@@ -10,6 +10,7 @@ import {
   getProblemsSolvedByUser,
   getProblemsByUserId,
   updateProblemById,
+  getProblemsCountSolvedByUser,
 } from "../controllers/problem.controller.js";
 
 const problemsRoutes = Router();
@@ -41,5 +42,9 @@ problemsRoutes
 problemsRoutes
     .route('/get-problems-by-user/:id')
     .get(isLoggedIn, isAdmin, getProblemsByUserId);
+
+problemsRoutes
+  .route("/get-solved-count")
+  .get(isLoggedIn, getProblemsCountSolvedByUser);
 
 export default problemsRoutes;

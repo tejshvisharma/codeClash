@@ -413,3 +413,40 @@ export const getProblemsSolvedByUser = async (req, res) => {
     });
   }
 };
+
+export const getProblemsCountSolvedByUser = async (req, res) => {
+  const userId = req.user?.id;
+  const requestId = req.requestId;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      error: "Unauthorized",
+    });
+  }
+
+  try {
+    const problemsCount = await db.problem.count({
+      where: {
+        solvedBy: {
+          some: { userId },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Problems count fetched successfully",
+      solvedProblemsCount: problemsCount,
+    });
+  } catch (err) {
+    logger.error(
+      { requestId, userId, err: err.message, stack: err.stack },
+      "Error fetching problemsCountSolvedByUser"
+    );
+    return res.status(500).json({
+      success: false,
+      error: "Error fetching Problems count Solved By User",
+    });
+  }
+};

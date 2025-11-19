@@ -5,6 +5,7 @@ import {
   getSubmissionsByProblemId,
   getSubmissionsCountForProblem,
   getSubmissionsForProblem,
+  getSuccessRateForProblem,
 } from "../controllers/submission.controller.js";
 
 const submissionRoutes = Router();
@@ -24,6 +25,10 @@ submissionRoutes
 submissionRoutes
     .route("/problem/:problemId")
     .get(isLoggedIn, getSubmissionsForProblem);
+
+submissionRoutes
+    .route("/get-success-rate/:problemId")
+    .get( getSuccessRateForProblem);
 
 
 export default submissionRoutes;

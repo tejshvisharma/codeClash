@@ -3,14 +3,15 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios"; 
 import { toast } from "react-hot-toast";
 
-const useSubmissionStore = create((set, get) => ({
+const useSubmissionStore = create((set) => ({
   // State
   submissions: [], // Array to hold submissions for a specific problem
   submissionCount: 0, // Total count of submissions for a specific problem
+  successRate: 0,
   isLoading: false, // Flag for loading states
   error: null, // Flag for error states
 
-  // Action 
+  // Action
   getSubmissionCountForProblem: async (problemId) => {
     if (!problemId) {
       console.error("getSubmissionCountForProblem: problemId is required");
@@ -71,6 +72,37 @@ const useSubmissionStore = create((set, get) => ({
         error.response?.data?.error ||
         error.message ||
         "An unexpected error occurred while fetching submissions.";
+      set({ error: errorMessage, isLoading: false });
+      toast.error(errorMessage);
+    }
+  },
+
+  // Action to get success rate for a specific problem
+  getSuccessRateForProblem: async (problemId) => {
+    set({ isLoading: true, error: null, successRate: null });
+
+    try {
+      const response = await axiosInstance.get(
+        `/submissions/get-success-rate/${problemId}`
+      );
+
+      if (response.data.success) {
+        set({
+          successRate: response.data.successRate,
+          isLoading: false,
+        });
+      } else {
+        const errorMessage =
+          response.data.error || "Failed to fetch success rate.";
+        set({ error: errorMessage, isLoading: false });
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "An unexpected error occurred while fetching success rate.";
+
       set({ error: errorMessage, isLoading: false });
       toast.error(errorMessage);
     }
