@@ -148,12 +148,12 @@ const SubmissionResults = ({ latestSubmission }) => {
                         {testCase?.passed ? (
                           <div className="flex items-center gap-2 text-success">
                             <CheckCircle2 className="w-5 h-5" />
-                            Passed
+                            {testCase?.status || "passed"}
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 text-error">
                             <XCircle className="w-5 h-5" />
-                            Failed
+                            {testCase?.status || "Failed"}
                           </div>
                         )}
                       </td>
@@ -183,7 +183,14 @@ const SubmissionResults = ({ latestSubmission }) => {
                 })}
               </tbody>
             </table>
-
+            {latestSubmission.stderr && (
+              <div>
+                <div className="text-xs text-error">Error:</div>
+                <pre className="text-sm bg-black/30 p-2 rounded mt-1 overflow-x-auto text-error">
+                  {latestSubmission.stderr}
+                </pre>
+              </div>
+            )}
             {/* In case there are no test cases */}
             {testCaseResults.length === 0 && (
               <div className="p-4 text-sm text-muted">

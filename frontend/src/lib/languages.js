@@ -13,3 +13,13 @@ export const getJudge0LanguageId = (language) => {
   };
   return langMap[language.toUpperCase()] || null;
 };
+
+export const submissionCardLang = (language) => {
+  const langMap = {
+    PYTHON: "py",
+    JAVA: "java",
+    CPP: "cpp",
+    JAVASCRIPT: "js",
+  };
+  return langMap[language.toUpperCase()] || null
+}

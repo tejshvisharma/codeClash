@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// frontend/src/pages/ProblemPage.jsx
+import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import {
   Play,
@@ -19,15 +20,17 @@ import {
   Send,
   RotateCcw,
   BookOpen,
+  Maximize,
+  Minimize,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { useAuthStore } from "../store/useAuthStore"; 
+import { useAuthStore } from "../store/useAuthStore";
 import useProblemStore from "../store/useProblemStore";
-import { getJudge0LanguageId, languageDisplayNames } from "../lib/languages.js"; 
-import  useExecutionStore  from "../store/useExecutionStore";
-import  useSubmissionStore  from "../store/useSubmissionStore";
+import { getJudge0LanguageId, languageDisplayNames } from "../lib/languages.js";
+import useExecutionStore from "../store/useExecutionStore";
+import useSubmissionStore from "../store/useSubmissionStore";
 import SubmissionResults from "../components/submissionResults.jsx";
-
+import SubmissionsList from "../components/submissionsList.jsx";
 
 const ProblemPage = () => {
   const { id } = useParams();
@@ -35,26 +38,99 @@ const ProblemPage = () => {
   const { getProblemById, problem, isProblemLoading } = useProblemStore();
 
   const {
-    submission: latestSubmission, 
+    submission: latestSubmission,
     isLoading: isExecutionLoading,
-    executeCode, 
+    executeCode,
   } = useExecutionStore();
 
   const {
-    submissions, 
+    submissions,
     isLoading: isSubmissionsLoading,
-    getSubmissionsForProblem, 
+    getSubmissionsForProblem,
     getSubmissionCountForProblem,
     submissionCount,
     successRate,
-    getSuccessRateForProblem
+    getSuccessRateForProblem,
   } = useSubmissionStore();
 
   const [code, setCode] = useState("");
   const [activeTab, setActiveTab] = useState("description");
-  const [selectedLanguage, setSelectedLanguage] = useState("javascript");
+  const [selectedLanguage, setSelectedLanguage] = useState("javascript"); // Or your default
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [testCases, setTestCases] = useState([]);
+  const [isEditorFullscreen, setIsEditorFullscreen] = useState(false);
+
+  const editorCardRef = useRef(null);
+
+  const toggleEditorFullscreen = () => {
+    if (!editorCardRef.current) {
+      console.error("Editor card ref is not attached.");
+      return;
+    }
+
+    if (!isEditorFullscreen) {
+      // Enter fullscreen
+      if (editorCardRef.current.requestFullscreen) {
+        editorCardRef.current.requestFullscreen();
+      } else if (editorCardRef.current.mozRequestFullScreen) {
+        // Firefox
+        editorCardRef.current.mozRequestFullScreen();
+      } else if (editorCardRef.current.webkitRequestFullscreen) {
+        // Chrome, Safari & Opera
+        editorCardRef.current.webkitRequestFullscreen();
+      } else if (editorCardRef.current.msRequestFullscreen) {
+        // IE/Edge
+        editorCardRef.current.msRequestFullscreen();
+      }
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        // Firefox
+        document.mozCancelFullScreen();
+      } else if (document.webkitExitFullscreen) {
+        // Chrome, Safari & Opera
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        // IE/Edge
+        document.msExitFullscreen();
+      }
+    }
+  };
+
+  // Listen for fullscreen change events to update state
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      // Check if the current fullscreen element is our editor card
+      setIsEditorFullscreen(
+        !!document.fullscreenElement &&
+          document.fullscreenElement === editorCardRef.current
+      );
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange); // Safari
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange); // Firefox
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange); // IE/Edge
+
+    // Cleanup event listeners on unmount
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        handleFullscreenChange
+      );
+      document.removeEventListener(
+        "mozfullscreenchange",
+        handleFullscreenChange
+      );
+      document.removeEventListener(
+        "MSFullscreenChange",
+        handleFullscreenChange
+      );
+    };
+  }, []); // Run once on mount
 
   useEffect(() => {
     if (id) {
@@ -62,7 +138,12 @@ const ProblemPage = () => {
       getSubmissionCountForProblem(id);
       getSuccessRateForProblem(id);
     }
-  }, [id, getProblemById, getSubmissionCountForProblem, getSuccessRateForProblem]);
+  }, [
+    id,
+    getProblemById,
+    getSubmissionCountForProblem,
+    getSuccessRateForProblem,
+  ]);
 
   useEffect(() => {
     if (activeTab === "submissions" && id) {
@@ -70,12 +151,16 @@ const ProblemPage = () => {
     }
   }, [activeTab, id, getSubmissionsForProblem]);
 
+  // The useEffect for problem and testCases initialization now only runs once when the problem is loaded
   useEffect(() => {
-    if (problem && problem.codeSnippets && selectedLanguage) {
-      const snippet = problem.codeSnippets[selectedLanguage.toUpperCase()];
-      if (snippet) {
-        setCode(snippet);
+    if (problem && problem.codeSnippets && problem.testCases) {
+      // Initialize code with default language snippet only when problem loads
+      const defaultSnippet =
+        problem.codeSnippets[selectedLanguage.toUpperCase()]; // Use the current state value
+      if (defaultSnippet) {
+        setCode(defaultSnippet);
       }
+      // Initialize test cases
       setTestCases(
         problem.testCases?.map((tc) => ({
           input: tc.input,
@@ -83,10 +168,20 @@ const ProblemPage = () => {
         })) || []
       );
     }
-  }, [problem, selectedLanguage]);
+  }, [problem]); // Only run when the problem object itself changes
+
+  // Create the function to handle loading a submission
+  const onLoadSubmission = (language, code) => {
+    // Update the language and code directly
+    // This will NOT trigger the useEffect that loads default snippets
+    setSelectedLanguage(language);
+    setCode(code);
+  };
 
   const handleLanguageChange = (lang) => {
     setSelectedLanguage(lang);
+    // Load the default snippet for the new language
+    // This is the *only* place where default snippets are loaded
     if (problem?.codeSnippets?.[lang.toUpperCase()]) {
       setCode(problem.codeSnippets[lang.toUpperCase()]);
     }
@@ -218,60 +313,13 @@ const ProblemPage = () => {
 
       case "submissions":
         return (
-          <div className="p-6">
-            {isSubmissionsLoading ? (
-              <div className="text-center py-8">
-                <span className="loading loading-spinner text-primary"></span>
-              </div>
-            ) : submissions && submissions.length > 0 ? (
-              <div className="space-y-4">
-                {submissions.map((sub) => (
-                  <div
-                    key={sub.id}
-                    className="card bg-base-200/50 border border-white/10 rounded-xl p-4 hover:bg-white/5 transition-colors cursor-pointer"
-                    onClick={() => {
-                      // Navigate to detailed submission page if you have one
-                      // navigate(`/submission/${sub.id}`);
-                      // Or set it as the latest submission to display results
-                      // setLatestSubmission(sub);
-                    }}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        {sub.status === "ACCEPTED" ? (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                        ) : (
-                          <XCircle className="w-5 h-5 text-error" />
-                        )}
-                        <span className="font-medium">{sub.language}</span>
-                        <span className="text-xs text-gray-400">
-                          {new Date(sub.createdAt).toLocaleTimeString()}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <span
-                          className={`badge text-xs ${
-                            sub.status === "ACCEPTED"
-                              ? "badge-success"
-                              : "badge-error"
-                          }`}
-                        >
-                          {sub.status}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {sub.memory ? `${sub.memory} MB` : ""} |{" "}
-                          {sub.time ? `${sub.time}s` : ""}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                No submissions yet for this problem.
-              </div>
-            )}
+          <div className="mt-8">
+            <SubmissionsList
+              submissions={submissions}
+              isLoading={isSubmissionsLoading}
+              setCode={setCode}
+              onLoadSubmission={onLoadSubmission}
+            />
           </div>
         );
 
@@ -309,9 +357,13 @@ const ProblemPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-base-300 to-base-200 max-w-7xl w-full mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-base-300 to-base-200 w-full">
+      {" "}
+      {/* Added p-4 here for consistent page padding */}
       {/* Header */}
-      <div className="bg-black/20 backdrop-blur-xl shadow-lg shadow-neutral-800/20 border border-white/10 rounded-2xl m-4 overflow-hidden">
+      <div className="bg-black/20 backdrop-blur-xl shadow-lg shadow-neutral-800/20 border border-white/10 rounded-2xl mb-6 overflow-hidden">
+        {" "}
+        {/* Added mb-6 for spacing below header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6">
           <div className="flex-1">
             <div className="flex items-center gap-2 text-gray-400 mb-2">
@@ -391,12 +443,15 @@ const ProblemPage = () => {
           </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {" "}
+        {/* Moved p-4 to parent div, removed from here */}
         {/* Left Column: Problem Statement & Tabs */}
         <div className="flex flex-col gap-6">
           {/* Problem Tabs Card */}
-          <div className="card bg-black/20 backdrop-blur-xl shadow-lg shadow-neutral-800/20 border border-white/10 rounded-2xl overflow-hidden">
+          <div className="card bg-black/20 backdrop-blur-xl shadow-lg shadow-neutral-800/20 border border-white/10 rounded-2xl overflow-hidden flex-1">
+            {" "}
+            {/* Added flex-1 to make card grow */}
             <div className="tabs tabs-lifted tabs-lg">
               {[
                 { id: "description", label: "Description", icon: FileText },
@@ -422,100 +477,72 @@ const ProblemPage = () => {
                 );
               })}
             </div>
-            <div className="card-body p-0">{renderTabContent()}</div>
-          </div>
-
-          {/* Test Cases Card (Conditional) */}
-          {latestSubmission && activeTab !== "submissions" && (
-            <div className="card bg-black/20 backdrop-blur-xl shadow-lg shadow-neutral-800/20 border border-white/10 rounded-2xl">
-              <div className="card-body p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold flex items-center gap-2">
-                    <Eye className="w-5 h-5" /> Execution Result
-                  </h3>
-                  <button
-                    onClick={() =>
-                      executeCode(
-                        code,
-                        getJudge0LanguageId(selectedLanguage),
-                        problem.testCases?.map((tc) => tc.input) || [],
-                        problem.testCases?.map((tc) => tc.output) || [],
-                        id
-                      )
-                    }
-                    className="btn btn-sm btn-ghost gap-1"
-                    disabled={isExecutionLoading}
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    Rerun
-                  </button>
-                </div>
-                {/* Render submission details here using your Submission component or logic */}
-                {/* Example placeholder for submission result */}
-                <div
-                  className={`p-4 rounded-lg ${
-                    latestSubmission.status === "ACCEPTED"
-                      ? "bg-emerald-500/10 border border-emerald-500/20"
-                      : "bg-error/10 border border-error/20"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    {latestSubmission.status === "ACCEPTED" ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    ) : (
-                      <XCircle className="w-5 h-5 text-error" />
-                    )}
-                    <span className="font-semibold">
-                      {latestSubmission.status}
-                    </span>
-                  </div>
-                  {/* You can map over testCaseResults here if available */}
-                  {latestSubmission.stdout && (
-                    <div className="mb-2">
-                      <div className="text-xs text-gray-400">Output:</div>
-                      <pre className="text-sm bg-black/30 p-2 rounded mt-1 overflow-x-auto">
-                        {latestSubmission.stdout}
-                      </pre>
-                    </div>
-                  )}
-                  {latestSubmission.stderr && (
-                    <div>
-                      <div className="text-xs text-error">Error:</div>
-                      <pre className="text-sm bg-black/30 p-2 rounded mt-1 overflow-x-auto text-error">
-                        {latestSubmission.stderr}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              </div>
+            <div className="card-body p-0 flex-1">
+              {" "}
+              {/* Added flex-1 to make body grow */}
+              {renderTabContent()}
             </div>
-          )}
+          </div>
         </div>
-
         {/* Right Column: Editor */}
         <div className="flex flex-col gap-6">
-          {/* Editor Card */}
-          <div className="card bg-black/20 backdrop-blur-xl shadow-lg shadow-neutral-800/20 border border-white/10 rounded-2xl overflow-hidden flex-1 flex flex-col">
+          {" "}
+          
+          <div
+            ref={editorCardRef} // Attach the ref here
+            className={`card bg-black/20 backdrop-blur-xl shadow-lg shadow-neutral-800/20 border border-white/10 rounded-2xl overflow-hidden flex-1 flex flex-col ${
+              isEditorFullscreen ? "fixed inset-0 z-50" : "" 
+            }`}
+          >
             <div className="card-body p-0 flex-1 flex flex-col">
               <div className="p-4 border-b border-white/10 flex justify-between items-center">
                 <h3 className="font-bold text-lg flex items-center gap-2">
                   <Code2 className="w-5 h-5" /> Code Editor
                 </h3>
-                <select
-                  className="select select-sm select-bordered select-primary rounded-lg"
-                  value={selectedLanguage}
-                  onChange={(e) => handleLanguageChange(e.target.value)}
-                >
-                  {Object.keys(problem.codeSnippets || {}).map((lang) => (
-                    <option key={lang.toLowerCase()} value={lang.toLowerCase()}>
-                      {languageDisplayNames[lang]}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex items-center gap-2">
+                  {" "}
+                  {/* Group language selector and buttons */}
+                  <select
+                    className="select select-sm select-bordered select-primary rounded-lg"
+                    value={selectedLanguage}
+                    onChange={(e) => handleLanguageChange(e.target.value)}
+                  >
+                    {Object.keys(problem.codeSnippets || {}).map((lang) => (
+                      <option
+                        key={lang.toLowerCase()}
+                        value={lang.toLowerCase()}
+                      >
+                        {languageDisplayNames[lang]}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Fullscreen Toggle Button */}
+                  <button
+                    className="btn btn-sm btn-ghost btn-circle tooltip tooltip-top"
+                    data-tip={
+                      isEditorFullscreen
+                        ? "Exit Fullscreen"
+                        : "Enter Fullscreen"
+                    }
+                    onClick={toggleEditorFullscreen}
+                    aria-label={
+                      isEditorFullscreen
+                        ? "Exit editor fullscreen"
+                        : "Enter editor fullscreen"
+                    }
+                  >
+                    {isEditorFullscreen ? (
+                      <Minimize className="w-4 h-4" />
+                    ) : (
+                      <Maximize className="w-4 h-4" />
+                    )}{" "}
+                    
+                  </button>
+                </div>
               </div>
               <div className="flex-1">
                 <Editor
-                  height="100%"
+                  height="100%" // Height is now controlled by the flex parent
                   language={selectedLanguage}
                   theme="vs-dark"
                   value={code}
@@ -537,7 +564,7 @@ const ProblemPage = () => {
                   <button
                     className="btn btn-sm btn-ghost gap-2"
                     onClick={handleRunCode}
-                    disabled={isExecutionLoading}
+                    disabled={isExecutionLoading || isEditorFullscreen} // Optionally disable during fullscreen
                   >
                     <Play className="w-4 h-4" />
                     {isExecutionLoading ? "Running..." : "Run Code"}
@@ -545,7 +572,7 @@ const ProblemPage = () => {
                   <button
                     className="btn btn-sm btn-primary gap-2"
                     onClick={handleSubmitSolution}
-                    disabled={isExecutionLoading}
+                    disabled={isExecutionLoading || isEditorFullscreen} // Optionally disable during fullscreen
                   >
                     <Send className="w-4 h-4" />
                     Submit
@@ -556,8 +583,13 @@ const ProblemPage = () => {
           </div>
         </div>
       </div>
-      <div className="card bg-base-100 shadow-xl mt-6">
-        <div className="card-body">
+      {/* Results/Test Cases Card - Now uses glassmorphism style */}
+      <div className="card bg-black/20 backdrop-blur-xl shadow-lg shadow-neutral-800/20 border border-white/10 rounded-2xl mt-6 overflow-hidden">
+        {" "}
+        {/* Updated styling */}
+        <div className="card-body p-6">
+          {" "}
+          {/* Added consistent padding */}
           {latestSubmission ? (
             <SubmissionResults latestSubmission={latestSubmission} />
           ) : (
@@ -565,24 +597,32 @@ const ProblemPage = () => {
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold">Test Cases</h3>
               </div>
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full">
-                  <thead>
-                    <tr>
-                      <th>Input</th>
-                      <th>Expected Output</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {testCases.map((testCase, index) => (
-                      <tr key={index}>
-                        <td className="font-mono">{testCase.input}</td>
-                        <td className="font-mono">{testCase.output}</td>
+              {testCases.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="table table-zebra w-full">
+                    <thead>
+                      <tr>
+                        <th>Input</th>
+                        <th>Expected Output</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {testCases.map((testCase, index) => (
+                        <tr key={index}>
+                          <td className="font-mono">{testCase.input}</td>
+                          <td className="font-mono">{testCase.output}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  {" "}
+                  {/* Added empty state message */}
+                  <p>No test cases available for this problem.</p>
+                </div>
+              )}
             </>
           )}
         </div>

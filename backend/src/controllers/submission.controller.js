@@ -124,12 +124,7 @@ export const getSubmissionsForProblem = async (req, res) => {
       orderBy: { createdAt: "desc" },
       take: 20, // Limit to last 20 submissions
       include: {
-        testCaseResults: {
-          select: {
-            testCase: true,
-            passed: true,
-          },
-        },
+        testCaseResults: true,
       },
     });
 

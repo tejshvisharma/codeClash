@@ -76,6 +76,9 @@ const useExecutionStore = create((set) => ({
     }
   },
 
+  changeSubmission : (latestSubmission)=>{
+    set({ submission: latestSubmission, isLoading: false, error:null });
+  },
   resetSubmission: () => set({ submission: null, error: null }),
 
   clearError: () => set({ error: null }),
