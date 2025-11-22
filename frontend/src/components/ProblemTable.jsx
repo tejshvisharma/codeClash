@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { CheckCircle2, Clock, Plus, Pencil, Trash2, Eye } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import  useProblemStore  from "../store/useProblemStore";
 import ProblemFilters from "./ProblemFilters";
+import AddToPlaylistModal from "./AddToPlaylist";
 
 const DifficultyBadge = ({ difficulty }) => {
   const styles = {
@@ -27,10 +28,28 @@ const TagBadge = ({ tag }) => (
   </span>
 );
 
+
+
 const ProblemTable = ({ problems, isLoading = false }) => {
   const { authUser } = useAuthStore();
   const { deleteProblem } = useProblemStore();
   const navigate = useNavigate();
+
+  // Playlist related states and hooks : 
+  const [isAddToPlaylistModalOpen, setIsAddToPlaylistModalOpen] =
+    useState(false);
+  const [problemToAdd, setProblemToAdd] = useState(null); // Store the problem object being added
+
+  const openAddToPlaylistModal = (problem) => {
+    setProblemToAdd(problem);
+    setIsAddToPlaylistModalOpen(true);
+  };
+
+  const closeAddToPlaylistModal = () => {
+    setIsAddToPlaylistModalOpen(false);
+    setProblemToAdd(null); 
+  };
+
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedDifficulty, setSelectedDifficulty] = React.useState("ALL");
@@ -102,11 +121,6 @@ const ProblemTable = ({ problems, isLoading = false }) => {
     return authUser?.solvedProblems?.includes(problemId);
   };
 
-  const handleAddToPlaylist = (e, title) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toast.success(`"${title}" added to playlist!`);
-  };
 
   const handleDelete = async (e, id) => {
     e.preventDefault();
@@ -160,7 +174,7 @@ const ProblemTable = ({ problems, isLoading = false }) => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/20 backdrop-blur-lg">
+      <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/20 backdrop-blur-lg scrollbar-hide">
         <table className="table w-full table-auto">
           <thead>
             <tr className="text-left text-gray-400 text-sm">
@@ -269,9 +283,10 @@ const ProblemTable = ({ problems, isLoading = false }) => {
                       </Link>
 
                       <button
-                        onClick={(e) => handleAddToPlaylist(e, problem.title)}
-                        className="btn btn-ghost btn-sm p-2 rounded-full text-secondary hover:text-secondary"
-                        aria-label="Add to playlist"
+                        onClick={() => openAddToPlaylistModal(problem)}
+                        className="btn btn-xs btn-ghost tooltip tooltip-top"
+                        data-tip="Add to Playlist"
+                        aria-label={`Add ${problem.title} to playlist`}
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -416,6 +431,15 @@ const ProblemTable = ({ problems, isLoading = false }) => {
           </svg>
         </button>
       </div>
+      {/* Render the AddToPlaylistModal */}
+      {problemToAdd && (
+        <AddToPlaylistModal
+          isOpen={isAddToPlaylistModalOpen}
+          onClose={closeAddToPlaylistModal}
+          problemIdToAdd={problemToAdd.id}
+          problemTitle={problemToAdd.title}
+        />
+      )}
     </div>
   );
 };

@@ -22,6 +22,7 @@ import {
   BookOpen,
   Maximize,
   Minimize,
+  Plus,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
@@ -31,6 +32,8 @@ import useExecutionStore from "../store/useExecutionStore";
 import useSubmissionStore from "../store/useSubmissionStore";
 import SubmissionResults from "../components/submissionResults.jsx";
 import SubmissionsList from "../components/submissionsList.jsx";
+import CreatePlaylistModel from "../components/CreatePlaylistModel.jsx";
+import AddToPlaylistModal from "../components/AddToPlaylist.jsx";
 
 const ProblemPage = () => {
   const { id } = useParams();
@@ -62,6 +65,20 @@ const ProblemPage = () => {
 
   const editorCardRef = useRef(null);
 
+  // addToPlaylist states and hooks :
+   const [isAddToPlaylistModalOpen, setIsAddToPlaylistModalOpen] =
+     useState(false);
+
+  const openAddToPlaylistModal = () => {
+    if (problem) {
+      setIsAddToPlaylistModalOpen(true);
+    }
+  };
+
+  // Function to close the modal
+  const closeAddToPlaylistModal = () => {
+    setIsAddToPlaylistModalOpen(false);
+  };
   const toggleEditorFullscreen = () => {
     if (!editorCardRef.current) {
       console.error("Editor card ref is not attached.");
@@ -216,7 +233,7 @@ const ProblemPage = () => {
 
   if (isProblemLoading || !problem) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-base-300 to-base-200">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-base-300 to-base-200 w-full">
         <div className="text-center">
           <span className="loading loading-spinner loading-lg text-primary"></span>
           <p className="mt-4 text-base-content/70">Loading problem...</p>
@@ -436,6 +453,17 @@ const ProblemPage = () => {
               >
                 <Bookmark className="w-4 h-4" />
               </button>
+              {/* Add to Playlist Button */}
+              <button
+                onClick={openAddToPlaylistModal}
+                className="btn btn-sm btn-ghost btn-circle tooltip tooltip-top"
+                data-tip="Add to Playlist"
+                aria-label={`Add ${
+                  problem?.title || "this problem"
+                } to playlist`}
+              >
+                <Plus className="w-4 h-4" /> 
+              </button>
               <button className="btn btn-sm btn-ghost btn-circle">
                 <Share2 className="w-4 h-4" />
               </button>
@@ -487,11 +515,10 @@ const ProblemPage = () => {
         {/* Right Column: Editor */}
         <div className="flex flex-col gap-6">
           {" "}
-          
           <div
             ref={editorCardRef} // Attach the ref here
             className={`card bg-black/20 backdrop-blur-xl shadow-lg shadow-neutral-800/20 border border-white/10 rounded-2xl overflow-hidden flex-1 flex flex-col ${
-              isEditorFullscreen ? "fixed inset-0 z-50" : "" 
+              isEditorFullscreen ? "fixed inset-0 z-50" : ""
             }`}
           >
             <div className="card-body p-0 flex-1 flex flex-col">
@@ -536,7 +563,6 @@ const ProblemPage = () => {
                     ) : (
                       <Maximize className="w-4 h-4" />
                     )}{" "}
-                    
                   </button>
                 </div>
               </div>
@@ -627,6 +653,15 @@ const ProblemPage = () => {
           )}
         </div>
       </div>
+      {/* Render the AddToPlaylistModal for the Problem Page */}
+      {problem && (
+        <AddToPlaylistModal
+          isOpen={isAddToPlaylistModalOpen}
+          onClose={closeAddToPlaylistModal}
+          problemIdToAdd={problem.id} // Pass the current problem's ID
+          problemTitle={problem.title} // Pass the current problem's title
+        />
+      )}
     </div>
   );
 };

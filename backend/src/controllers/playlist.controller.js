@@ -4,37 +4,72 @@ import logger from "../utils/logger.js";
 
 export const createPlaylist = async (req, res) => {
     try {
-        const { name, description } = req.body;
-        const userId = req.user?.id;
-        const requestId = req.requestId;
-        const user = await db.user.findUnique({ where: { id: userId } });
-        if (!user) {
-            logger.debug({ requestId, userId }, "User not found In DB");
-            return res.status(404).json({
-                success: false,
-                message: "User not found",
-            });
-        }
+      const { name, description } = req.body;
+      const userId = req.user?.id;
+      const requestId = req.requestId;
+      const user = await db.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        logger.debug({ requestId, userId }, "User not found In DB");
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
 
-        const playlist = await db.playlist.create({
-            data: {
-                name,
-                description,
-                userId
-            }
+      // 1. Validate input on the server side
+      if (!name || typeof name !== "string" || name.trim() === "") {
+        logger.debug(
+          { requestId, userId },
+          "Playlist name is missing or invalid"
+        );
+        return res.status(400).json({
+          success: false,
+          message: "Playlist name is required and cannot be empty.",
         });
-        if (!playlist) {
-            logger.error("Error creating playlist");
-            return res.status(500).json({
-                success: false,
-                message: "Failed creating playlist, try again",
-            });
-        }
-        return res.status(200).json({
-            success: true,
-            message: "Playlist created successfully",
-            playlist,
+      }
+
+      // Optional: Trim the name before further processing
+      const trimmedName = name.trim();
+
+      // 2. Check for existing name for this user
+      const existingPlaylist = await db.playlist.findFirst({
+        where: {
+          name: trimmedName, // Use trimmed name for comparison
+          userId: userId,
+        },
+      });
+
+      if (existingPlaylist) {
+        logger.debug(
+          { requestId, userId, name: trimmedName },
+          "Playlist name already exists for user"
+        );
+        return res.status(409).json({
+          // 409 Conflict is appropriate for duplicates
+          success: false,
+          message: "A playlist with this name already exists.",
         });
+      }
+
+      const playlist = await db.playlist.create({
+        data: {
+          name: trimmedName,
+          description,
+          userId,
+        },
+      });
+      if (!playlist) {
+        logger.error("Error creating playlist");
+        return res.status(500).json({
+          success: false,
+          message: "Failed creating playlist, try again",
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        message: "Playlist created successfully",
+        playlist,
+      });
     } catch (err) {
         logger.error({ requestId, err: err.message, stack: err.stack }, "Error creating playlist");
         return res.status(500).json({
