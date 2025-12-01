@@ -11,6 +11,7 @@ import Layout from "./layout/Layout"
 import AdminRoute from "./components/AdminRoute"
 import AddProblem from "./pages/AddProblem"
 import ProblemPage from "./pages/ProblemPage"
+import RunCodePage from "./pages/RunCodePage"
 function App() {
     
     const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -52,6 +53,10 @@ function App() {
           path="/problem/:id" 
           element={  < ProblemPage /> } 
         />
+        <Route
+          path="/runcode"
+          element = { <RunCodePage/> }
+          />
         <Route  element={<AdminRoute />}> 
         <Route 
           path="/add-problem" 
