@@ -10,6 +10,8 @@ import executionRoutes from "./routes/execution.routes.js";
 import requestId from "./middlewares/requestId.middleware.js";
 import submissionsRoutes from "./routes/submission.routes.js";
 import playlistRoutes from "./routes/playlist.routes.js";
+import runCodeRoutes from "./routes/runcode.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
 dotenv.config();
 
 const app = express();
@@ -40,6 +42,8 @@ app.use("/api/v1/problems", problemsRoutes);
 app.use("/api/v1/execute-code", executionRoutes);
 app.use("/api/v1/submissions", submissionsRoutes);
 app.use("/api/v1/playlist", playlistRoutes);
+app.use("/api/v1/runcode", runCodeRoutes);
+app.use("/api/v1/profile", profileRoutes);
 
 const PORT = process.env.PORT || 8000;
 

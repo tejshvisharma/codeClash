@@ -14,13 +14,11 @@ const HomePage = () => {
     }
   }, [getAllProblems, problems.length]);
 
-  
   const [isCreatePlaylistModalOpen, setIsCreatePlaylistModalOpen] =
     useState(false);
 
   // Function to handle playlist creation (passed to the modal)
   const handleCreatePlaylist = async (newPlaylist) => {
-    
     console.log("New playlist created:", newPlaylist);
   };
 
@@ -49,14 +47,34 @@ const HomePage = () => {
           coding problems.
         </p>
         {/* Action Buttons Container */}
-        <div className="mt-8 flex flex-wrap justify-center gap-4 z-10 w-full max-w-md">
+        <div className="mt-8 flex flex-wrap justify-center gap-4 z-10 w-full max-w-2xl">
           {" "}
           <a
-            href="/runcode" // Replace with actual route if different
+            href="/profile"
+            className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-center text-white bg-gradient-to-r from-primary to-secondary hover:opacity-90 rounded-xl border border-white/10 focus:ring-4 focus:ring-primary/30 transition-all duration-200 shadow-lg shadow-primary/20"
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+            View My Profile
+          </a>
+          <a
+            href="/runcode"
             className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-center text-white bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 hover:bg-white/10 focus:ring-4 focus:ring-primary/30 transition-all duration-200 shadow-lg shadow-primary/10"
           >
             <svg
-              className="w-4 h-4 mr-2" // Added mr-2 for icon spacing
+              className="w-4 h-4 mr-2"
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
