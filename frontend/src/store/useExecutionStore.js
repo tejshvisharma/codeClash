@@ -44,7 +44,7 @@ const useExecutionStore = create((set) => ({
         expected_outputs,
         problemId,
       });
-      console.log("ExecutionResult : ",response.data);
+      console.log("ExecutionResult : ",response.data.executionResult);
       if (response.data.success) {
         set({
           submission: response.data.submissionWithTestCases,
